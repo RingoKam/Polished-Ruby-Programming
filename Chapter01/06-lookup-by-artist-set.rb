@@ -4,6 +4,8 @@ album_infos = 100.times.flat_map do |i|
   end
 end
 
+# faster lookup than array
+# but significantly slower than hash
 album_artists = Set.new(album_infos.flat_map(&:last))
 
 lookup = ->(artists) do
