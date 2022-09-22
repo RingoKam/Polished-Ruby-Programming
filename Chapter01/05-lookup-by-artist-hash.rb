@@ -4,6 +4,7 @@ album_infos = 100.times.flat_map do |i|
   end
 end
 
+# fastest to populate and fastest to lookup
 album_artists = {}
 album_infos.each do |_, _, artist|
   album_artists[artist] ||= true
