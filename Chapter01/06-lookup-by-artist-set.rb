@@ -9,5 +9,7 @@ end
 album_artists = Set.new(album_infos.flat_map(&:last))
 
 lookup = ->(artists) do
+  # ruby set syntax, take 2 set and 
+  # return the common between the two
   album_artists & artists
 end
