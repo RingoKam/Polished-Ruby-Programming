@@ -5,7 +5,7 @@ album_infos = 100.times.flat_map do |i|
 end
 
 # More memory efficient than last 2 approach, don't have to create hash
-# faster lookup performance when loojup by albums with tracks
+# faster lookup performance when lookup by albums with tracks
 albums = {}
 album_infos.each do |album, track, artist|
   album_array = albums[album] ||= [[]]
