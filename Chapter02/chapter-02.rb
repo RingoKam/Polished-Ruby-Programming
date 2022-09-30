@@ -3,6 +3,7 @@
 
 ## Learning when to create a custom class
 
+# Without class 
 stack = []
 
 # add to top of stack
@@ -33,7 +34,8 @@ class Stack
 end
 
 # --
-
+# Require the value in the stack to be SYMBOL only, 
+# and time symbol spend in the stack
 class SymbolStack
   def initialize
     @stack = []
@@ -56,6 +58,8 @@ class SymbolStack
 # --
 
   private def clock_time
+    # more reliable than Time.now as Time.now duration can be affected by the changes
+    # to the system
     Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 end
@@ -89,18 +93,18 @@ builder.append(name)
 puts builder.as_string
 
 # --
-
+# Single format 
 report = Report.new(data)
 puts report.format
 
 # --
-
+# Separate storage of data and formatting
 report_content = ReportContent.new(data)
 report_formatter = ReportFormatter.new
 puts report_formatter.format(report_content)
 
 # --
-
+# different type of reports, easily replacable 
 report_content = ReportContent.new(data)
 report_formatter = ReportFormatter.
   for_type(report_type).new
@@ -109,27 +113,25 @@ puts report_formatter.format(report_content)
 # --
 
 class OpenClosed
+  # get public and private of the given class/module
   def self.meths(m)
     m.instance_methods + m.private_instance_methods
   end
-
-# --
+  
+  # alias/override the ruby object to use the prepend 
+  # and include in the custom class method below
+  singleton_class.alias_method :prepend, :include
 
   def self.include(*mods)
     mods.each do |mod|
+      # check if the included mod intersect with the current class
       unless (meths(mod) & meths(self)).empty?
         raise "class closed for modification"
       end
     end
     super
   end
-
-# --
-
-  singleton_class.alias_method :prepend, :include
-
-# --
-
+  
   def self.extend(*mods)
     mods.each do |mod|
       unless (meths(mod) & meths(singleton_class)).empty?
@@ -138,38 +140,42 @@ class OpenClosed
     end
     super
   end
+end
 
 # --
+class OpenClosed
 
+  check_method = true
+
+  # all the method defined within the class, 
+  # added a __ before it so we know it is defined before
   meths(self).each do |method|
     alias_name = :"__#{method}"
     alias_method alias_name, method
   end
 
-# --
-
-  check_method = true
+  # override the class method_added callback
+  # runs whenever we add a new method to class, 
+  # if method is already defined, throw an exception
   define_singleton_method(:method_added) do |method|
     return unless check_method
-
-# --
 
     if method.start_with?('__')
       unaliased_name = method[2..-1]
       if private_method_defined?(unaliased_name) ||
              method_defined?(unaliased_name)
+        # turn off callback and add method without the alias 
         check_method = false
-        alias_method method, unaliased_name
+        alias_method method, unaliased_name 
         check_method = true
         raise "class closed for modification"
       end
-
-# --
-
     else
       alias_name = :"__#{method}"
       if private_method_defined?(alias_name) ||
              method_defined?(alias_name)
+        
+        # turn off callback and add method with alias
         check_method = false
         alias_method method, alias_name
         check_method = true
@@ -184,19 +190,19 @@ end
 OpenClosed.singleton_class.remove_method(:method_added)
 
 # --
-
 class Max
   def initialize(max)
     @max = max
   end
 
+  # check if a number is over max
   def over?(n)
     @max < n
   end
 end
 
 # --
-
+# No good, you broke it 😡
 class MaxBy < Max
   def over?(n, by)
     @max + by < n
@@ -204,7 +210,7 @@ class MaxBy < Max
 end
 
 # --
-
+# Fix it with optional argument 
 class MaxBy < Max
   def over?(n, by: 0)
     @max + by < n
@@ -212,7 +218,8 @@ class MaxBy < Max
 end
 
 # --
-
+# this won't work, 
+# subclass will go to else branch
 if obj.instance_of?(Max)
   # do something
 else
@@ -220,7 +227,7 @@ else
 end
 
 # --
-
+# same here 
 if obj.class == Max
   # do something
 else
@@ -228,7 +235,7 @@ else
 end
 
 # --
-
+# use this instead! 
 if obj.kind_of?(Max)
   # do something
 else
@@ -236,7 +243,7 @@ else
 end
 
 # --
-
+# but what if we want to test it? 
 class CurrentDay
   def initialize
     @date = Date.today
@@ -254,7 +261,8 @@ class CurrentDay
 end
 
 # --
-
+# we can override the class method
+# BUT can no longer use multi thread test
 before do
   Date.singleton_class.class_eval do
     alias_method :_today, :today
@@ -279,7 +287,7 @@ class CurrentDay
 end
 
 # --
-
+# inject your dependency that you want to swap out
 class CurrentDay
   def initialize(date: Date.today,
                  schedule: MonthlySchedule.new(date.year,
@@ -303,12 +311,12 @@ end
 
 require 'cgi/escape'
 
+# everything is under one method
+# turn multiple row into HTML table
 class HTMLTable
   def initialize(rows)
     @rows = rows
   end
-
-# --
 
   def to_s
     html = String.new
@@ -341,16 +349,13 @@ class HTMLTable
     end
   end
 
-# --
-
   %i"table tbody tr td".each do |type|
     klass = Class.new(Element)
     klass.set_type(type)
     const_set(type.capitalize, klass)
   end
 
-# --
-
+  # each element is now handle by a class 
   def to_s
     Table.new(
       Tbody.new(
@@ -367,16 +372,15 @@ class HTMLTable
 end
 
 # --
-
+# Append only design
+# yielding between the opening tag and the cloise tags 
 class HTMLTable
   def wrap(html, type)
     html << "<" << type << ">"
     yield
     html << "</" << type << ">"
   end
-
-# --
-
+  
   def to_s
     html = String.new
     wrap(html, 'table') do
