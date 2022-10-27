@@ -5,15 +5,14 @@
 
 time_filter = TimeFilter.new(Time.local(2020, 10),
                              Time.local(2020, 11))
-array_of_times.filter!(&time_filter)
-
-# --
+array_of_times.select(&time_filter)
 
 after_now = TimeFilter.new(Time.now, nil)
 in_future, in_past = array_of_times.partition(&after_now)
 
 # --
-
+# A class that takes in a block with 1 arg, 
+# determine if the arg is in between the start and finish
 class TimeFilter
   attr_reader :start, :finish
 
@@ -30,11 +29,10 @@ class TimeFilter
     end
   end
 end
-
 # --
-
 def to_proc
   proc do |value|
+    # cache the attr_reader result into a local variable  
     start = self.start
     finish = self.finish
 
@@ -45,8 +43,9 @@ def to_proc
 end
 
 # --
-
 def to_proc
+  # move the cache of the accessor outside of the proc, 
+  # so it will only get called one time instead of n times
   start = self.start
   finish = self.finish
 
@@ -63,6 +62,7 @@ def to_proc
   start = self.start
   finish = self.finish
 
+  # produce optimal proc for each setup
   if start && finish
     proc{|value| value >= start && value <= finish}
   elsif start
@@ -86,7 +86,8 @@ end
 # --
 
 num_arrays = 0
-array_class = Array
+# cache the constant for small performance boost
+array_class = Array 
 large_array.each do |value|
   if value.is_a?(array_class)
     num_arrays += 1
@@ -108,6 +109,7 @@ end
 
 # --
 
+# cache the computation
 max = ARGV[0].to_f
 large_array.reject! do |value|
   value >= max * 2
@@ -115,6 +117,7 @@ end
 
 # --
 
+# do the multiplication once 
 max = ARGV[0].to_f * 2
 large_array.reject! do |value|
   value >= max
