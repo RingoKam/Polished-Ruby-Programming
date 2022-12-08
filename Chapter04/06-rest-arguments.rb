@@ -1,6 +1,10 @@
+
 def foo(bar, *)
 end
 
+# ignore any argument after, 
+# useful if you want to persist the rest of the args
+# for base class
 def foo(bar, *)
   bar = 2
   super
@@ -41,12 +45,14 @@ a(*array)
 def a(x, *y)
 end
 
+# to pass into z, we need to provide y!
 def a(x, y=nil, *z)
 end
 
 def a(*y, z)
 end
 
+# make sense if we try to implement move
 def mv(source, *sources, dir)
   sources.unshift(source)
   sources.each do |source|
