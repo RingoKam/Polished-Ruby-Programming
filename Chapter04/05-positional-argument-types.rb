@@ -1,15 +1,17 @@
+# works!
 def a(x, y=2, z)
   [x, y, z]
 end
 a(1, 3)
 # => [1, 2, 3]
 
-eval(<<END)
-  def a(x=1, y, z=2)
-  end
-END
-# SyntaxError
+# Doesn't work, SyntaxError 
+def a(x=1, y, z=2)
+end
 
+# x is the leading argument 
+# y optional argument 
+# z is the post argument
 def a(x, y=2, z)
 end
 
@@ -21,6 +23,7 @@ END
 def a(x, y=nil)
 end
 
+# y is the post arguments
 def a(x=nil, y)
 end
 
