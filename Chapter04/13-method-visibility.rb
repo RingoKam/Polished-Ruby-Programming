@@ -1,3 +1,4 @@
+# turn method into protected
 class MethodVis
   protected def foo
     :foo
@@ -16,6 +17,7 @@ m.foo
 
 class MethodVis
   private def method_missing(sym, ...)
+    # warn user that it is missing and then call the protected method
     if sym == :foo
       warn("foo is a protected method, stop calling it!",
            uplevel: 1)
