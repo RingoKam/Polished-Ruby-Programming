@@ -10,12 +10,15 @@ end
 def foo(options={})
 end
 
+# avoid hash being allocated by 
+# providing one outside the method
 OPTIONS = {}.freeze
 def foo(options=OPTIONS)
 end
 
 foo(:bar=>1)
-
+# however if we are providing a value, 
+# 
 BAR_OPTIONS = {:bar=>1}.freeze
 foo(BAR_OPTIONS)
 
@@ -53,6 +56,7 @@ def foo(*args, **kwargs)
   [args, kwargs]
 end
 
+# Ruby 2 
 # Keywords treated as keywords, good!
 foo(bar: 1)
 # => [[], {:bar=>1}]
@@ -61,6 +65,7 @@ foo(bar: 1)
 foo({bar: 1})
 # => [[], {:bar=>1}]
 
+# Ruby 3
 # Keywords treated as keywords, good!
 foo(bar: 1)
 # => [[], {:bar=>1}]
@@ -88,6 +93,7 @@ end
 # 2 hash allocations
 foo
 
+# positional argument is used instead
 def foo(options=OPTIONS)
   bar(options)
 end
@@ -103,6 +109,8 @@ end
 # 0 hash allocations
 foo
 
+# no allocation 
+# but difficult to maintain
 def foo(key: nil)
   bar(key: key)
 end
@@ -121,6 +129,7 @@ foo
 def foo(bar, **nil)
 end
 
+# original 
 def foo(bar)
   bar
 end
@@ -167,7 +176,10 @@ end
 def baz(baz: nil)
   baz
 end
+# explode if i provide keyword argument 
+foo(bar: 1, baz: 2)
 
+# doesnt explode but hard to maintain 
 def foo(bar: nil, baz: nil)
   bar(bar: bar)
   baz(baz: baz)
@@ -193,6 +205,7 @@ end
 def baz(baz: nil, bar: nil)
   baz
 end
+# doesn't blow up but unused variable
 
 def foo(**kwargs)
   bar(**kwargs)
@@ -206,6 +219,7 @@ end
 def baz(baz: nil, **)
   baz
 end
+# works but bad for performance as it need to allocate 3 times
 
 # Positional
 def foo(bar=nil)
